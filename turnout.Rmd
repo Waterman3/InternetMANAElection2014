@@ -1,0 +1,77 @@
+---
+title: "2014 Election Turnout"
+author: "Warwick Taylor"
+date: "6 March 2017"
+output: html_document
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Introduction
+
+This document shows the turnout at the 2014 New Zealand General Election by electorate. For the purpose of this document the turnout is the percentage of registered voters in an electorate that cast a vote.
+
+
+```{r echo=FALSE}
+
+library(nzelect)
+library(dplyr)
+library(leaflet)
+
+# Get turnout data.
+getwd()
+turnout2014<-read.csv("e9_part9_2.csv",skip=5,header=FALSE)
+General_turnout_2014<-turnout2014[1:64,]
+# Create object of electorate location.
+
+ElectLocs<- Locations2014 %>%
+  group_by(ElectorateNumber,ElectorateName) %>%
+  summarise(ElectLat=mean(WGS84Latitude), ElectLong=mean(abs(WGS84Longitude))) %>%
+  select(ElectorateNumber,ElectorateName,ElectLat,ElectLong)
+
+# Electorate names
+ bozstrings<-as.character(General_turnout_2014[,1]) 
+
+# General Electorate data frame for map.
+GeneralElectorateTurnout<-data.frame(name=as.character(bozstrings),
+lat=ElectLocs$ElectLat,
+lng=ElectLocs$ElectLong,
+turnout=General_turnout_2014[,13])
+
+# Maori Electorate data frame for map.
+Maori_turnout_2014<-turnout2014[66:72,]
+Maori_lat<-c(-39.,-36.5,-39,-35,-44,-38,-37)
+Maori_Long<-c(178,176,174.5,174,170,178,176)
+Maori_electorates<-c("Ikaoroa-Rawhit","Tamaki Makaurau", "Te Tai Hauauru", "Te Tai Tokerau", "Te Tai Tonga","Waiariki","Hauraki-Waikato")
+MaoriLocs<-data.frame(ElectorateName=Maori_electorates,ElectLat=Maori_lat,ElectLong=Maori_Long)
+names(Maori_turnout_2014)=c("ElectorateName","V2","V3","V4","V5","V6","V7","V8",
+"V9","V10","V11","V12","V13","V14","V15")
+Maori_elect_turnout<-merge(MaoriLocs, Maori_turnout_2014,by="ElectorateName")
+MaorilElectorateTurnout<-data.frame(name=as.character(Maori_elect_turnout$ElectorateName),
+lat=Maori_elect_turnout$ElectLat,
+lng=Maori_elect_turnout$ElectLong,
+turnout=Maori_elect_turnout[,15])
+
+ElectorateTurnout<-rbind(GeneralElectorateTurnout, MaorilElectorateTurnout)
+
+turnmap<-ElectorateTurnout %>%
+  leaflet() %>%
+  addTiles() %>%
+  addCircles(weight=5,radius=(ElectorateTurnout$turnout)*100, color = "orange") %>%
+  addLabelOnlyMarkers(label=as.character(ElectorateTurnout$name),
+labelOptions = labelOptions(noHide = T, direction = 'top', textOnly = T))
+turnmap
+```
+
+## Explanation
+
+The size of each circle is proportional to the turnout. The circles are centred at the average latitude and longitude of the polling places in each General electorate. For Maori electorates I have placed them approximately in the middle of each electorate. 
+
+Rongotai appears of the coast a little because it includes the Chatham Islands.
+
+## Acknowledgement
+
+Thanks to Peter who made the nzelect package. It helped immensely with data manipulation.

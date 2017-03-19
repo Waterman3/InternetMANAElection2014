@@ -1,0 +1,125 @@
+---
+title: "The Effect of Standing Candidates on the Internet MANA Party Vote - a Preliminary Look"
+author: "Warwick Taylor"
+date: "11 March 2017"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+library(plotly)
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Introduction
+
+
+This presentation is a quick look at the party vote for Internet MANA and the turnout at the 2014 New Zealand General Election.
+
+## Background
+
+In the 2014 New Zealand General Election the MANA Movement, which
+was formed in 2011 and the Internet Party, which was formed in 
+2014 made an alliance for the Election whereby for party list voting purposes the two would be one party (Internet MANA) but in an electorate one of the parties could stand a candidate under the
+name of that party.
+
+For an explanation of how Mixed Member Proportional Representaton
+works in New Zealand see:
+
+http://www.elections.org.nz/voting-system/mmp-voting-system
+
+
+
+
+
+## Definitions
+
+For this presentation:
+
+the **party vote** is the number of list votes cast for Internet MANA; and
+
+the **turnout** is the numbers of votes cast in an electorate as a percentage of the number of enrolled voters in that electorate. 
+
+##  Sources of Data
+
+The sources of data were:
+
+http://archive.electionresults.govt.nz/electionresults_2014/e9/html/e9_part4.html
+
+for the party vote data 
+
+http://archive.electionresults.govt.nz/electionresults_2014/e9/html/e9_part9_2.html
+
+for the turnout data and
+
+http://archive.electionresults.govt.nz/electionresults_2014/electorateindex.html
+
+for determining which seats had Internet Party or MANA Movement candidates standing.
+
+## What We Will Look At
+
+Firstly, I will plot the party vote received by Internet MANA in each electorate, indicating whether the electorate is:
+
+- a Maori electorate (Maori);
+
+- a General electorate in which an Internet Party or MANA Movement candidate stood (General Candidate); or
+
+- a General electorate in which no Internet Party or MANA Movement candidate stood (General No Candidate).
+
+## Internet MANA Party Votes in Each Electorate
+
+```{r echo=FALSE,fig.align='center',warning=FALSE}
+
+
+
+turnout2014<-read.csv("e9_part9_2.csv",skip=5,header=FALSE)
+General_turnout_2014<-turnout2014[1:64,]
+Maori_turnout_2014<-turnout2014[66:72,]
+names(Maori_turnout_2014)=c("ElectorateName","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12","V13","V14","V15")
+names(General_turnout_2014)=c("ElectorateName","V2","V3","V4","V5","V6","V7","V8","V9","V10","V11","V12","V13","V14","V15")
+elect_types<-read.csv("elect_types.csv",header=TRUE)
+party_vote_2014_raw<-read.csv("party_vote_2014.csv")
+party_vote_2014<-rbind(party_vote_2014_raw[1:64,],party_vote_2014_raw[66:72,])
+party_vote_2014_electorate<-cbind(party_vote_2014[,1:18],elect_types$ElectorateType)
+Elect_turnout_2014<-rbind(General_turnout_2014,Maori_turnout_2014)
+
+IMvotes_2014<-cbind(elect_types,Elect_turnout_2014[,13],party_vote_2014_electorate$INTERNET_MANA)
+names(IMvotes_2014)<-c("Electorate","ElectorateType","turnout","party_vote")
+sorted_IMvotes_2014<-IMvotes_2014[order(-IMvotes_2014$party_vote),]
+plot_ly(data=sorted_IMvotes_2014,x=~Electorate,y=~party_vote,type="bar",color=~ElectorateType)
+```
+
+## Observation
+
+It seems that in general the Internet MANA party vote was better where a candidate stood (Northland was a notable exception), but perhaps not significantly better in the General electorates.
+
+## Party Vote and Turnout
+
+```{r echo=FALSE, fig.align='center'}
+plot_ly(data=IMvotes_2014,x=~turnout,y=~party_vote,color=~ElectorateType,text=~Electorate,type="scatter", mode="markers")
+```
+
+## Clusters
+
+There seem to be three clusters:
+
+1. the Maori electorates;
+
+2. four general electorates with a turnout of about 70%; 
+
+3. the other General electorates.
+
+
+## Conclusions - Where to Next?
+
+* The party vote was highest in the Maori electorates.
+
+* The party vote in the General electorate was generally higher
+  where there was a candidate for MANA or the Internet Party, 
+  but perhaps not significantly higher.
+  
+* It would be worthwhile investigating if this difference is
+  significant.
+  
+* It would be good to investigate why there was a low party vote
+  and only about 70% turnout in the South Auckland electorates of
+  Mangere, Manukau East and Manurewa.
+
